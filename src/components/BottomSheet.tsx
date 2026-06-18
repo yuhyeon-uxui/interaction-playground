@@ -30,7 +30,7 @@ export default function BottomSheet({ isOpen, onClose, stiffness, damping, mass 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-40"
+            className="absolute inset-0 bg-black/60 z-40"
           />
 
           {/* Bottom Sheet Container */}
@@ -48,7 +48,7 @@ export default function BottomSheet({ isOpen, onClose, stiffness, damping, mass 
                 onClose();
               }
             }}
-            className="fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-white rounded-t-3xl shadow-2xl"
+            className="absolute bottom-0 left-0 right-0 z-50 flex flex-col bg-white rounded-t-3xl shadow-2xl"
           >
             {/* Drag Handle Area */}
             <div className="flex justify-center p-3 cursor-grab active:cursor-grabbing touch-none">
