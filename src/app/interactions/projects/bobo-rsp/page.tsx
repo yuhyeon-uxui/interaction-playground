@@ -113,26 +113,7 @@ export default function BoboRSP() {
             className="w-full h-full bg-[#FAED5B] rounded-[32px] overflow-hidden relative cursor-pointer"
             onClick={handleScreenTap}
           >
-            {/* Sunburst Background for Win */}
-            <AnimatePresence>
-              {status === 'result' && lastOutcome === 'win' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center"
-                >
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                    className="w-[200%] h-[200%]"
-                    style={{
-                      background: 'repeating-conic-gradient(from 0deg, rgba(255,255,255,0.4) 0deg 15deg, transparent 15deg 30deg)'
-                    }}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Removed sunburst background based on user feedback */}
 
             <div className="absolute top-12 w-full text-center z-10">
               <h2 className="text-xl font-extrabold text-black mb-1">
@@ -385,14 +366,7 @@ setTimeout(() => {
   transition={{ type: "spring", bounce: 0.6 }}
 >
   {boboHand}
-</motion.div>
-
-// 3. 승리 시 회전하는 배경 (Sunburst)
-<motion.div
-  animate={{ rotate: 360 }}
-  transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-  style={{ background: 'repeating-conic-gradient(...)' }}
-/>`}
+</motion.div>`}
                 </pre>
               </div>
             </div>
