@@ -5,8 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const HANDS = ['✊', '✌️', '✋'];
 
+const getHandName = (hand: string) => {
+  if (hand === '✊') return '바위';
+  if (hand === '✌️') return '가위';
+  return '보';
+};
+
 export default function BoboRSP() {
-  const [status, setStatus] = useState<'rolling' | 'stopped' | 'result' | 'reward'>('rolling');
+  const [status, setStatus] = useState<'rolling' | 'stopped' | 'boboResult' | 'result' | 'reward'>('rolling');
   const [boboHandIdx, setBoboHandIdx] = useState(0);
   const [userHand, setUserHand] = useState('✋');
   const [winCount, setWinCount] = useState(0);
@@ -17,6 +23,7 @@ export default function BoboRSP() {
   // Controls
   const [intervalMs, setIntervalMs] = useState(500);
   const [tensionScale, setTensionScale] = useState(1.3);
+  const [intermediateDelayMs, setIntermediateDelayMs] = useState(1500);
 
   // Rolling effect
   useEffect(() => {
@@ -34,11 +41,23 @@ export default function BoboRSP() {
     
     const bHand = HANDS[boboHandIdx];
     let outcome = forceResult;
+    
+    // 연승 기반 확률 로직 적용
     if (outcome === 'random') {
       const r = Math.random();
-      if (r < 0.33) outcome = 'win';
-      else if (r < 0.66) outcome = 'lose';
-      else outcome = 'tie';
+      if (winCount === 0) {
+        outcome = 'win'; // 1라운드 100% 승리
+      } else if (winCount === 1) {
+        // 2라운드: 승 80%, 무 10%, 패 10%
+        if (r < 0.8) outcome = 'win';
+        else if (r < 0.9) outcome = 'tie';
+        else outcome = 'lose';
+      } else {
+        // 3라운드 이상: 승 50%, 무 35%, 패 15% (애니멀 컬렉션을 위해 패배를 적게)
+        if (r < 0.5) outcome = 'win';
+        else if (r < 0.85) outcome = 'tie';
+        else outcome = 'lose';
+      }
     }
 
     let uHand = bHand;
@@ -55,32 +74,34 @@ export default function BoboRSP() {
     setUserHand(uHand);
     setLastOutcome(outcome as 'win' | 'lose' | 'tie');
 
-    // Tension delay before showing result
+    // 1. 텐션 딜레이 (멈춤 타격감)
     setTimeout(() => {
-      setStatus('result');
+      setStatus('boboResult'); // 2. 중간 연출 화면
       
-      if (outcome === 'win') {
-        if (winCount + 1 >= 3) {
-          setTimeout(() => setStatus('reward'), 1500);
-        } else {
+      setTimeout(() => {
+        setStatus('result'); // 3. 최종 결과
+        
+        if (outcome === 'win') {
+          if (winCount + 1 >= 3) {
+            setTimeout(() => setStatus('reward'), 1500);
+          } else {
+            setTimeout(() => {
+              setWinCount(prev => prev + 1);
+              setStatus('rolling');
+            }, 2000);
+          }
+        } else if (outcome === 'lose') {
           setTimeout(() => {
-            setWinCount(prev => prev + 1);
+            setWinCount(0);
             setStatus('rolling');
           }, 2000);
+        } else if (outcome === 'tie') {
+          setTimeout(() => {
+            setStatus('rolling');
+          }, 1200);
         }
-      } else if (outcome === 'lose') {
-        // Lose: Drop down and reset score
-        setTimeout(() => {
-          setWinCount(0);
-          setStatus('rolling');
-        }, 2000);
-      } else if (outcome === 'tie') {
-        // Tie: Clash and restart quickly
-        setTimeout(() => {
-          setStatus('rolling');
-        }, 1200);
-      }
-    }, 800);
+      }, intermediateDelayMs); // 쪼는 맛 타이밍
+    }, 800); 
   };
 
   const resetGame = () => {
@@ -133,6 +154,20 @@ export default function BoboRSP() {
               <div className="absolute bottom-[200px] w-full text-center">
                 <p className="text-lg font-bold text-gray-800">이길 것 같을 때 터치하세요!</p>
               </div>
+            )}
+
+            {status === 'boboResult' && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute top-[350px] w-full text-center z-20 flex flex-col items-center gap-2"
+              >
+                <p className="text-xl font-bold text-black">BOBO는</p>
+                <div className="bg-[#E53935] text-white px-4 py-1.5 rounded-lg text-xl font-black shadow-md">
+                  {getHandName(HANDS[boboHandIdx])}
+                </div>
+                <p className="text-xl font-bold text-black">를 냈어요!</p>
+              </motion.div>
             )}
 
             {status === 'result' && (
@@ -222,7 +257,6 @@ export default function BoboRSP() {
         </div>
 
         <div className="space-y-8">
-          {/* Result Simulator */}
           <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
             <h3 className="font-semibold text-sm mb-3 text-gray-700">결과 시뮬레이터 (테스트용)</h3>
             <div className="grid grid-cols-2 gap-2">
@@ -230,7 +264,7 @@ export default function BoboRSP() {
                 onClick={() => setForceResult('random')}
                 className={`py-2 text-sm font-bold rounded-lg border ${forceResult === 'random' ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300'}`}
               >
-                🎲 완전 랜덤
+                🎲 완전 랜덤 (서비스 로직)
               </button>
               <button 
                 onClick={() => setForceResult('win')}
@@ -259,12 +293,20 @@ export default function BoboRSP() {
                 🎁 최종 보상(MOMO) 카드 바로보기
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-3 text-center">원하는 결과를 선택하고 좌측 화면을 탭해보세요.</p>
+            <p className="text-xs text-gray-500 mt-3 text-center">랜덤일 경우 1라(100%), 2라(80%), 3라(50%) 확률로 연승 적용</p>
           </div>
 
           <div>
             <h3 className="font-semibold text-lg mb-4">모션 파라미터</h3>
             <div className="space-y-6">
+              <div>
+                <label className="flex justify-between mb-2 text-sm font-medium">
+                  <span>중간 연출 쪼는 맛 (ms)</span>
+                  <span className="font-mono bg-gray-100 px-2 rounded">{intermediateDelayMs}ms</span>
+                </label>
+                <input type="range" min="500" max="3000" step="100" value={intermediateDelayMs} onChange={e => setIntermediateDelayMs(Number(e.target.value))} className="w-full accent-black" />
+                <p className="text-xs text-gray-400 mt-1">결과 전 "BOBO는 바위를 냈어요!"가 머무는 딜레이 시간.</p>
+              </div>
               <div>
                 <label className="flex justify-between mb-2 text-sm font-medium">
                   <span>롤링 속도 (ms)</span>
@@ -282,7 +324,6 @@ export default function BoboRSP() {
             </div>
           </div>
 
-          {/* Developer Code Snippets */}
           <div>
             <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
               💻 개발자 전달용 스펙 코드
@@ -293,25 +334,22 @@ export default function BoboRSP() {
                   <span className="text-[#888] text-xs font-bold tracking-wider">REACT / FRAMER MOTION</span>
                 </div>
                 <pre className="text-[#d4d4d4] font-mono text-[13px] leading-relaxed overflow-x-auto">
-{`// 1. 탭 할때 텐션 타격감 (Spring Scale)
+{`// 1. 중간 연출 화면 플로우 타이밍
+setTimeout(() => {
+  showBoboHand("BOBO는 바위를 냈어요!"); // 중간 화면
+  
+  setTimeout(() => {
+    showUserHandAndResult(); // 최종 패와 결과 공개
+  }, ${intermediateDelayMs}); // 쪼는 맛 딜레이
+}, 800); // 탭 후 타격감 텐션 딜레이
+
+// 2. 탭 할때 텐션 타격감 (Spring Scale)
 <motion.div
   animate={{ scale: ${tensionScale} }}
   transition={{ type: "spring", bounce: 0.6 }}
 >
   {boboHand}
-</motion.div>
-
-// 2. 패배 시 (Drop & Grayscale)
-<motion.div
-  animate={{ y: 50, filter: "grayscale(100%)" }}
-  transition={{ type: "tween", duration: 0.5 }}
-/>
-
-// 3. 무승부 시 (Shake / Clash)
-<motion.div
-  animate={{ rotate: [0, 10, -10, 10, 0] }}
-  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-/>`}
+</motion.div>`}
                 </pre>
               </div>
             </div>
