@@ -14,7 +14,7 @@ interface BottomSheetProps {
 export default function BottomSheet({ isOpen, onClose, stiffness, damping, mass }: BottomSheetProps) {
   // Spring config based on user input
   const transitionConfig = {
-    type: 'spring',
+    type: 'spring' as const,
     stiffness,
     damping,
     mass,
