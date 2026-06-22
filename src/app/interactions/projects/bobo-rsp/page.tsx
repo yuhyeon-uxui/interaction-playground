@@ -14,6 +14,7 @@ const getHandName = (hand: string) => {
 export default function BoboRSP() {
   const [status, setStatus] = useState<'rolling' | 'stopped' | 'boboResult' | 'result' | 'reward'>('rolling');
   const [boboHandIdx, setBoboHandIdx] = useState(0);
+  const [userHandIdx, setUserHandIdx] = useState(1);
   const [userHand, setUserHand] = useState('✋');
   const [winCount, setWinCount] = useState(0);
   
@@ -30,6 +31,7 @@ export default function BoboRSP() {
     if (status !== 'rolling') return;
     const timer = setInterval(() => {
       setBoboHandIdx((prev) => (prev + 1) % HANDS.length);
+      setUserHandIdx((prev) => (prev + 2) % HANDS.length); // 유저 패도 같이 롤링
     }, intervalMs);
     return () => clearInterval(timer);
   }, [status, intervalMs]);
@@ -113,18 +115,17 @@ export default function BoboRSP() {
             className="w-full h-full bg-[#FAED5B] rounded-[32px] overflow-hidden relative cursor-pointer"
             onClick={handleScreenTap}
           >
-            {/* Removed sunburst background based on user feedback */}
+            {/* Top header logic for reward state mostly */}
+            {status === 'reward' && (
+              <div className="absolute top-12 w-full text-center z-10">
+                <h2 className="text-xl font-extrabold text-black mb-1">
+                  3판 모두 이겨서 MOMO가 나왔어요!
+                </h2>
+              </div>
+            )}
 
-            <div className="absolute top-12 w-full text-center z-10">
-              <h2 className="text-xl font-extrabold text-black mb-1">
-                {status === 'reward' ? '3판 모두 이겨서 MOMO가 나왔어요!' : 'BOBO를 이기고 혜택 받기!'}
-              </h2>
-              <p className="text-sm font-bold text-[#E53935] bg-white inline-block px-3 py-1 rounded-full shadow-sm">
-                현재 {winCount}연승 중!
-              </p>
-            </div>
-
-            <div className="absolute top-0 left-0 w-full h-[400px] flex items-center justify-center z-10">
+            {/* BOBO Hand (Top) */}
+            <div className="absolute top-0 left-0 w-full h-[350px] flex items-center justify-center z-10">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={status === 'rolling' ? boboHandIdx : 'stopped'}
@@ -141,19 +142,26 @@ export default function BoboRSP() {
                     bounce: 0.6,
                     duration: status === 'stopped' ? 0.3 : (lastOutcome === 'tie' ? 0.4 : 0.1)
                   }}
-                  className="text-[120px] drop-shadow-xl"
+                  className="text-[140px] drop-shadow-xl"
                 >
                   {HANDS[boboHandIdx]}
                 </motion.div>
               </AnimatePresence>
             </div>
 
+            {/* Rolling Instruction Text (Center) */}
             {status === 'rolling' && (
-              <div className="absolute bottom-[200px] w-full text-center z-10">
-                <p className="text-lg font-bold text-gray-800">이길 것 같을 때 터치하세요!</p>
+              <div className="absolute top-[320px] w-full text-center z-10 flex flex-col items-center">
+                <p className="text-gray-500 font-bold text-sm mb-1">{winCount + 1}판째</p>
+                <p className="text-2xl font-black text-black">BOBO를 이길 것 같을때</p>
+                <p className="text-2xl font-black text-black mb-3">손을 눌러주세요!</p>
+                <div className="bg-[#E53935] text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md">
+                  현재 {winCount}연승 중!
+                </div>
               </div>
             )}
 
+            {/* Intermediate Bobo Result (Center) */}
             {status === 'boboResult' && (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -168,77 +176,70 @@ export default function BoboRSP() {
               </motion.div>
             )}
 
+            {/* Final Result Text (Center) */}
             {status === 'result' && (
-              <>
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="absolute top-[350px] w-full text-center z-20 flex flex-col items-center"
-                >
-                  <p className="text-gray-500 font-bold text-lg mb-1">{winCount + 1}판째</p>
-                  
-                  {lastOutcome === 'win' && (
-                    <>
-                      <p className="text-3xl font-black text-black">앗싸!</p>
-                      <p className="text-2xl font-black text-black mt-1">BOBO를 이겼어요!</p>
-                    </>
-                  )}
-                  {lastOutcome === 'lose' && (
-                    <>
-                      <p className="text-2xl font-black text-black">아쉽게 BOBO에게 졌어요</p>
-                      <p className="text-xl font-bold text-gray-700 mt-1">괜찮아요!</p>
-                    </>
-                  )}
-                  {lastOutcome === 'tie' && (
-                    <>
-                      <p className="text-3xl font-black text-black">무승부 한 판 더!</p>
-                      <div className="bg-[#E53935] text-white px-5 py-1.5 rounded-full mt-3 font-bold shadow-md">
-                        현재 {winCount}연승 중!
-                      </div>
-                    </>
-                  )}
-                </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute top-[350px] w-full text-center z-20 flex flex-col items-center"
+              >
+                <p className="text-gray-500 font-bold text-lg mb-1">{winCount + 1}판째</p>
                 
                 {lastOutcome === 'win' && (
-                  <motion.div
-                    initial={{ y: 300, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-                    className="absolute bottom-10 left-0 w-full flex justify-center text-[150px] drop-shadow-2xl z-20"
-                  >
-                    {userHand}
-                  </motion.div>
+                  <>
+                    <p className="text-3xl font-black text-black">앗싸!</p>
+                    <p className="text-2xl font-black text-black mt-1">BOBO를 이겼어요!</p>
+                  </>
                 )}
-
                 {lastOutcome === 'lose' && (
-                  <motion.div
-                    initial={{ y: 300, opacity: 0 }}
-                    animate={{ y: 50, opacity: 1, filter: "grayscale(100%)" }}
-                    transition={{ type: 'tween', ease: "easeOut", duration: 0.5 }}
-                    className="absolute bottom-10 left-0 w-full flex justify-center text-[150px] drop-shadow-md z-20"
-                  >
-                    <motion.div
-                      animate={{ y: [0, 200], opacity: [1, 0] }}
-                      transition={{ delay: 1, duration: 0.8, ease: "easeIn" }}
-                    >
-                      {userHand}
-                    </motion.div>
-                  </motion.div>
+                  <>
+                    <p className="text-2xl font-black text-black">아쉽게 BOBO에게 졌어요</p>
+                    <p className="text-xl font-bold text-gray-700 mt-1">괜찮아요!</p>
+                  </>
                 )}
-
                 {lastOutcome === 'tie' && (
-                  <motion.div
-                    initial={{ y: 300, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1, rotate: [0, 10, -10, 10, 0] }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-                    className="absolute bottom-[100px] left-0 w-full flex justify-center text-[150px] drop-shadow-2xl z-20"
-                  >
-                    {userHand}
-                  </motion.div>
+                  <>
+                    <p className="text-3xl font-black text-black">무승부 한 판 더!</p>
+                    <div className="bg-[#E53935] text-white px-5 py-1.5 rounded-full mt-3 font-bold shadow-md">
+                      현재 {winCount}연승 중!
+                    </div>
+                  </>
                 )}
-              </>
+              </motion.div>
             )}
 
+            {/* User Hand (Bottom) - Always visible except reward */}
+            <AnimatePresence>
+              {status !== 'reward' && (
+                <motion.div
+                  className="absolute bottom-10 left-0 w-full flex justify-center text-[150px] drop-shadow-2xl z-20"
+                >
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={status === 'rolling' ? userHandIdx : 'stopped'}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ 
+                        opacity: 1, 
+                        y: status === 'result' && lastOutcome === 'win' ? -20 : (status === 'result' && lastOutcome === 'lose' ? 50 : 0),
+                        scale: status === 'stopped' ? tensionScale : 1,
+                        rotate: status === 'result' && lastOutcome === 'tie' ? [0, 10, -10, 10, 0] : 0,
+                        filter: status === 'result' && lastOutcome === 'lose' ? "grayscale(100%)" : "none"
+                      }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ 
+                        type: status === 'stopped' ? 'spring' : 'tween',
+                        bounce: 0.6,
+                        duration: status === 'stopped' ? 0.3 : 0.1
+                      }}
+                    >
+                      {status === 'rolling' ? HANDS[userHandIdx] : userHand}
+                    </motion.div>
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Reward Card */}
             <AnimatePresence>
               {status === 'reward' && (
                 <motion.div
@@ -322,7 +323,6 @@ export default function BoboRSP() {
                   <span className="font-mono bg-gray-100 px-2 rounded">{intermediateDelayMs}ms</span>
                 </label>
                 <input type="range" min="500" max="3000" step="100" value={intermediateDelayMs} onChange={e => setIntermediateDelayMs(Number(e.target.value))} className="w-full accent-black" />
-                <p className="text-xs text-gray-400 mt-1">결과 전 "BOBO는 바위를 냈어요!"가 머무는 딜레이 시간.</p>
               </div>
               <div>
                 <label className="flex justify-between mb-2 text-sm font-medium">
