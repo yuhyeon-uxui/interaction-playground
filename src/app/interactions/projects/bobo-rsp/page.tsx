@@ -251,6 +251,14 @@ export default function BoboRSP() {
                 ⚔️ 무조건 무승부
               </button>
             </div>
+            <div className="mt-2">
+              <button 
+                onClick={() => setStatus('reward')}
+                className="w-full py-2 text-sm font-bold rounded-lg border bg-[#FAED5B] text-black border-[#FAED5B] shadow-sm hover:brightness-95 transition-all"
+              >
+                🎁 최종 보상(MOMO) 카드 바로보기
+              </button>
+            </div>
             <p className="text-xs text-gray-500 mt-3 text-center">원하는 결과를 선택하고 좌측 화면을 탭해보세요.</p>
           </div>
 
