@@ -273,6 +273,41 @@ export default function BoboRSP() {
               </div>
             </div>
           </div>
+
+          {/* Developer Code Snippets */}
+          <div>
+            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+              💻 개발자 전달용 스펙 코드
+            </h3>
+            <div className="space-y-4">
+              <div className="bg-[#1e1e1e] p-5 rounded-xl border border-gray-800">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-[#888] text-xs font-bold tracking-wider">REACT / FRAMER MOTION</span>
+                </div>
+                <pre className="text-[#d4d4d4] font-mono text-[13px] leading-relaxed overflow-x-auto">
+{`// 1. 탭 할때 텐션 타격감 (Spring Scale)
+<motion.div
+  animate={{ scale: ${tensionScale} }}
+  transition={{ type: "spring", bounce: 0.6 }}
+>
+  {boboHand}
+</motion.div>
+
+// 2. 패배 시 (Drop & Grayscale)
+<motion.div
+  animate={{ y: 50, filter: "grayscale(100%)" }}
+  transition={{ type: "tween", duration: 0.5 }}
+/>
+
+// 3. 무승부 시 (Shake / Clash)
+<motion.div
+  animate={{ rotate: [0, 10, -10, 10, 0] }}
+  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+/>`}
+                </pre>
+              </div>
+            </div>
+          </div>
         </div>
       </aside>
     </main>
