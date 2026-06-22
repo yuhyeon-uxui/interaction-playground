@@ -42,18 +42,15 @@ export default function BoboRSP() {
     const bHand = HANDS[boboHandIdx];
     let outcome = forceResult;
     
-    // 연승 기반 확률 로직 적용
     if (outcome === 'random') {
       const r = Math.random();
       if (winCount === 0) {
-        outcome = 'win'; // 1라운드 100% 승리
+        outcome = 'win';
       } else if (winCount === 1) {
-        // 2라운드: 승 80%, 무 10%, 패 10%
         if (r < 0.8) outcome = 'win';
         else if (r < 0.9) outcome = 'tie';
         else outcome = 'lose';
       } else {
-        // 3라운드 이상: 승 50%, 무 35%, 패 15% (애니멀 컬렉션을 위해 패배를 적게)
         if (r < 0.5) outcome = 'win';
         else if (r < 0.85) outcome = 'tie';
         else outcome = 'lose';
@@ -74,12 +71,11 @@ export default function BoboRSP() {
     setUserHand(uHand);
     setLastOutcome(outcome as 'win' | 'lose' | 'tie');
 
-    // 1. 텐션 딜레이 (멈춤 타격감)
     setTimeout(() => {
-      setStatus('boboResult'); // 2. 중간 연출 화면
+      setStatus('boboResult');
       
       setTimeout(() => {
-        setStatus('result'); // 3. 최종 결과
+        setStatus('result');
         
         if (outcome === 'win') {
           if (winCount + 1 >= 3) {
@@ -94,13 +90,13 @@ export default function BoboRSP() {
           setTimeout(() => {
             setWinCount(0);
             setStatus('rolling');
-          }, 2000);
+          }, 2500);
         } else if (outcome === 'tie') {
           setTimeout(() => {
             setStatus('rolling');
-          }, 1200);
+          }, 1500);
         }
-      }, intermediateDelayMs); // 쪼는 맛 타이밍
+      }, intermediateDelayMs);
     }, 800); 
   };
 
@@ -117,6 +113,27 @@ export default function BoboRSP() {
             className="w-full h-full bg-[#FAED5B] rounded-[32px] overflow-hidden relative cursor-pointer"
             onClick={handleScreenTap}
           >
+            {/* Sunburst Background for Win */}
+            <AnimatePresence>
+              {status === 'result' && lastOutcome === 'win' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center"
+                >
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                    className="w-[200%] h-[200%]"
+                    style={{
+                      background: 'repeating-conic-gradient(from 0deg, rgba(255,255,255,0.4) 0deg 15deg, transparent 15deg 30deg)'
+                    }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <div className="absolute top-12 w-full text-center z-10">
               <h2 className="text-xl font-extrabold text-black mb-1">
                 {status === 'reward' ? '3판 모두 이겨서 MOMO가 나왔어요!' : 'BOBO를 이기고 혜택 받기!'}
@@ -126,7 +143,7 @@ export default function BoboRSP() {
               </p>
             </div>
 
-            <div className="absolute top-0 left-0 w-full h-[400px] flex items-center justify-center">
+            <div className="absolute top-0 left-0 w-full h-[400px] flex items-center justify-center z-10">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={status === 'rolling' ? boboHandIdx : 'stopped'}
@@ -151,7 +168,7 @@ export default function BoboRSP() {
             </div>
 
             {status === 'rolling' && (
-              <div className="absolute bottom-[200px] w-full text-center">
+              <div className="absolute bottom-[200px] w-full text-center z-10">
                 <p className="text-lg font-bold text-gray-800">이길 것 같을 때 터치하세요!</p>
               </div>
             )}
@@ -175,11 +192,30 @@ export default function BoboRSP() {
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="absolute top-[400px] w-full text-center z-20"
+                  className="absolute top-[350px] w-full text-center z-20 flex flex-col items-center"
                 >
-                  {lastOutcome === 'win' && <p className="text-2xl font-black text-[#E53935]">앗싸! 이겼다!</p>}
-                  {lastOutcome === 'lose' && <p className="text-2xl font-black text-gray-500">아쉽게 졌어요...</p>}
-                  {lastOutcome === 'tie' && <p className="text-2xl font-black text-blue-600">앗! 비겼다! 찌릿!</p>}
+                  <p className="text-gray-500 font-bold text-lg mb-1">{winCount + 1}판째</p>
+                  
+                  {lastOutcome === 'win' && (
+                    <>
+                      <p className="text-3xl font-black text-black">앗싸!</p>
+                      <p className="text-2xl font-black text-black mt-1">BOBO를 이겼어요!</p>
+                    </>
+                  )}
+                  {lastOutcome === 'lose' && (
+                    <>
+                      <p className="text-2xl font-black text-black">아쉽게 BOBO에게 졌어요</p>
+                      <p className="text-xl font-bold text-gray-700 mt-1">괜찮아요!</p>
+                    </>
+                  )}
+                  {lastOutcome === 'tie' && (
+                    <>
+                      <p className="text-3xl font-black text-black">무승부 한 판 더!</p>
+                      <div className="bg-[#E53935] text-white px-5 py-1.5 rounded-full mt-3 font-bold shadow-md">
+                        현재 {winCount}연승 중!
+                      </div>
+                    </>
+                  )}
                 </motion.div>
                 
                 {lastOutcome === 'win' && (
@@ -187,7 +223,7 @@ export default function BoboRSP() {
                     initial={{ y: 300, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-                    className="absolute bottom-10 left-0 w-full flex justify-center text-[150px] drop-shadow-2xl"
+                    className="absolute bottom-10 left-0 w-full flex justify-center text-[150px] drop-shadow-2xl z-20"
                   >
                     {userHand}
                   </motion.div>
@@ -198,7 +234,7 @@ export default function BoboRSP() {
                     initial={{ y: 300, opacity: 0 }}
                     animate={{ y: 50, opacity: 1, filter: "grayscale(100%)" }}
                     transition={{ type: 'tween', ease: "easeOut", duration: 0.5 }}
-                    className="absolute bottom-10 left-0 w-full flex justify-center text-[150px] drop-shadow-md"
+                    className="absolute bottom-10 left-0 w-full flex justify-center text-[150px] drop-shadow-md z-20"
                   >
                     <motion.div
                       animate={{ y: [0, 200], opacity: [1, 0] }}
@@ -214,7 +250,7 @@ export default function BoboRSP() {
                     initial={{ y: 300, opacity: 0 }}
                     animate={{ y: 0, opacity: 1, rotate: [0, 10, -10, 10, 0] }}
                     transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-                    className="absolute bottom-[100px] left-0 w-full flex justify-center text-[150px] drop-shadow-2xl"
+                    className="absolute bottom-[100px] left-0 w-full flex justify-center text-[150px] drop-shadow-2xl z-20"
                   >
                     {userHand}
                   </motion.div>
@@ -349,7 +385,14 @@ setTimeout(() => {
   transition={{ type: "spring", bounce: 0.6 }}
 >
   {boboHand}
-</motion.div>`}
+</motion.div>
+
+// 3. 승리 시 회전하는 배경 (Sunburst)
+<motion.div
+  animate={{ rotate: 360 }}
+  transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+  style={{ background: 'repeating-conic-gradient(...)' }}
+/>`}
                 </pre>
               </div>
             </div>
