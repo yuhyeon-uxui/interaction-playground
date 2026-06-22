@@ -152,12 +152,18 @@ export default function BoboRSP() {
             {/* Rolling Instruction Text (Center) */}
             {status === 'rolling' && (
               <div className="absolute top-[320px] w-full text-center z-10 flex flex-col items-center">
-                <p className="text-gray-500 font-bold text-sm mb-1">{winCount + 1}판째</p>
+                {winCount === 0 ? (
+                  <p className="text-gray-500 font-bold text-sm mb-1">연속 3판 이기면 애니멀 1마리 획득</p>
+                ) : (
+                  <p className="text-gray-500 font-bold text-sm mb-1">{winCount + 1}판째</p>
+                )}
                 <p className="text-2xl font-black text-black">BOBO를 이길 것 같을때</p>
-                <p className="text-2xl font-black text-black mb-3">손을 눌러주세요!</p>
-                <div className="bg-[#E53935] text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md">
-                  현재 {winCount}연승 중!
-                </div>
+                <p className={`text-2xl font-black text-black ${winCount > 0 ? 'mb-3' : ''}`}>손을 눌러주세요!</p>
+                {winCount > 0 && (
+                  <div className="bg-[#E53935] text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md">
+                    현재 {winCount}연승 중!
+                  </div>
+                )}
               </div>
             )}
 
