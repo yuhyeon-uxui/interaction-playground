@@ -50,6 +50,11 @@ export default function Sidebar() {
           </h2>
           <ul className="space-y-2">
             <li>
+              <Link href="/interactions/projects/bobo-rsp" className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive('/interactions/projects/bobo-rsp') ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
+                BOBO 가위바위보 (미니게임)
+              </Link>
+            </li>
+            <li>
               <span className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-400 cursor-not-allowed">
                 PDS Hub (준비 중)
               </span>

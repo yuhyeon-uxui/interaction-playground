@@ -46,6 +46,19 @@ export default function Dashboard() {
           <FolderKanban className="text-gray-500" /> 프로젝트 (Projects)
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Link href="/interactions/projects/bobo-rsp" className="group block bg-[#FAED5B] border border-[#FAED5B] rounded-2xl p-6 hover:shadow-lg hover:border-black transition-all">
+            <div className="w-12 h-12 bg-white rounded-xl mb-4 flex items-center justify-center group-hover:rotate-12 transition-transform text-2xl shadow-sm">
+              🐻
+            </div>
+            <h3 className="text-xl font-bold mb-2 text-black">BOBO 가위바위보</h3>
+            <p className="text-sm text-gray-800 mb-4">
+              0.5초 롤링 타격감과 승패 결과 Slide-Up 모션 프로토타입
+            </p>
+            <div className="flex items-center text-sm font-bold text-black group-hover:translate-x-1 transition-transform">
+              보러가기 <ArrowRight size={16} className="ml-1" />
+            </div>
+          </Link>
+          
           {/* Mock card for future */}
           <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 opacity-60">
             <h3 className="text-xl font-bold mb-2 text-gray-400">PDS Hub (동호회 게시판)</h3>
