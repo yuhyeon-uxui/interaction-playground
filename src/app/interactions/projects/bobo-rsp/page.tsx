@@ -12,7 +12,7 @@ const getHandName = (hand: string) => {
 };
 
 export default function BoboRSP() {
-  const [status, setStatus] = useState<'rolling' | 'stopped' | 'boboResult' | 'result' | 'reward'>('rolling');
+  const [status, setStatus] = useState<'rolling' | 'stopped' | 'boboResult' | 'result' | 'reward' | 'gameOver'>('rolling');
   const [boboHandIdx, setBoboHandIdx] = useState(0);
   const [userHandIdx, setUserHandIdx] = useState(1);
   const [userHand, setUserHand] = useState('✋');
@@ -31,7 +31,7 @@ export default function BoboRSP() {
     if (status !== 'rolling') return;
     const timer = setInterval(() => {
       setBoboHandIdx((prev) => (prev + 1) % HANDS.length);
-      setUserHandIdx((prev) => (prev + 2) % HANDS.length); // 유저 패도 같이 롤링
+      setUserHandIdx((prev) => (prev + 2) % HANDS.length);
     }, intervalMs);
     return () => clearInterval(timer);
   }, [status, intervalMs]);
@@ -90,8 +90,14 @@ export default function BoboRSP() {
           }
         } else if (outcome === 'lose') {
           setTimeout(() => {
-            setWinCount(0);
-            setStatus('rolling');
+            if (winCount >= 1) {
+              // 2~3판에서 졌을 때 GameOver 화면으로 전환
+              setStatus('gameOver');
+            } else {
+              // 1판에서 졌을 때는 바로 초기화
+              setWinCount(0);
+              setStatus('rolling');
+            }
           }, 2500);
         } else if (outcome === 'tie') {
           setTimeout(() => {
@@ -115,7 +121,7 @@ export default function BoboRSP() {
             className="w-full h-full bg-[#FAED5B] rounded-[32px] overflow-hidden relative cursor-pointer"
             onClick={handleScreenTap}
           >
-            {/* Top header logic for reward state mostly */}
+            {/* Top header logic for reward/gameOver state */}
             {status === 'reward' && (
               <div className="absolute top-12 w-full text-center z-10">
                 <h2 className="text-xl font-extrabold text-black mb-1">
@@ -214,9 +220,9 @@ export default function BoboRSP() {
               </motion.div>
             )}
 
-            {/* User Hand (Bottom) - Always visible except reward */}
+            {/* User Hand (Bottom) - Always visible except reward & gameOver */}
             <AnimatePresence>
-              {status !== 'reward' && (
+              {status !== 'reward' && status !== 'gameOver' && (
                 <motion.div
                   className="absolute bottom-10 left-0 w-full flex justify-center text-[150px] drop-shadow-2xl z-20"
                 >
@@ -249,22 +255,55 @@ export default function BoboRSP() {
             <AnimatePresence>
               {status === 'reward' && (
                 <motion.div
-                  initial={{ y: 500, scale: 0.5, rotateY: 180 }}
-                  animate={{ y: 0, scale: 1, rotateY: 0 }}
-                  transition={{ type: 'spring', stiffness: 100, damping: 15, duration: 1 }}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
                   className="absolute inset-0 bg-[#FAED5B] z-30 flex flex-col items-center justify-center pt-20"
                 >
-                  <div className="w-[240px] h-[340px] bg-white rounded-2xl shadow-2xl flex flex-col items-center justify-center relative overflow-hidden border-4 border-[#E53935]">
+                  <motion.div 
+                    initial={{ scale: 0.5, rotateY: 180 }}
+                    animate={{ scale: 1, rotateY: 0 }}
+                    transition={{ type: 'spring', stiffness: 100, damping: 15 }}
+                    className="w-[240px] h-[340px] bg-white rounded-2xl shadow-2xl flex flex-col items-center justify-center relative overflow-hidden border-4 border-[#E53935]"
+                  >
                     <div className="absolute top-0 w-full h-full bg-gradient-to-tr from-white to-gray-50 opacity-50" />
                     <span className="text-[100px] z-10 drop-shadow-lg">🐭</span>
                     <h3 className="text-2xl font-black text-[#E53935] mt-4 z-10">MOMO 획득!</h3>
-                  </div>
+                  </motion.div>
                   
                   <button 
                     onClick={(e) => { e.stopPropagation(); resetGame(); }}
                     className="mt-12 bg-[#E53935] text-white font-bold py-4 px-10 rounded-full shadow-lg active:scale-95 transition-transform"
                   >
                     다시 도전하기
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Game Over Screen */}
+            <AnimatePresence>
+              {status === 'gameOver' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="absolute inset-0 bg-[#FAED5B] z-30 flex flex-col items-center justify-center pt-10"
+                >
+                  <p className="text-gray-600 font-bold mb-1">아쉽게 BOBO에게 졌어요...</p>
+                  <h3 className="text-2xl font-black text-black mb-10">내일 다시 도전해볼까요?</h3>
+                  
+                  <div className="flex gap-4 text-7xl mb-12 drop-shadow-lg">
+                    <motion.span animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 2, delay: 0 }}>🐰</motion.span>
+                    <motion.span animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 2, delay: 0.2 }}>🐭</motion.span>
+                    <motion.span animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 2, delay: 0.4 }}>🐶</motion.span>
+                  </div>
+                  
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); resetGame(); }}
+                    className="absolute bottom-10 w-[85%] bg-[#E53935] text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-transform"
+                  >
+                    애니멀 컬렉션 보러가기
                   </button>
                 </motion.div>
               )}
@@ -309,12 +348,18 @@ export default function BoboRSP() {
                 ⚔️ 무조건 무승부
               </button>
             </div>
-            <div className="mt-2">
+            <div className="mt-2 flex gap-2">
               <button 
                 onClick={() => setStatus('reward')}
-                className="w-full py-2 text-sm font-bold rounded-lg border bg-[#FAED5B] text-black border-[#FAED5B] shadow-sm hover:brightness-95 transition-all"
+                className="flex-1 py-2 text-sm font-bold rounded-lg border bg-[#FAED5B] text-black border-[#FAED5B] shadow-sm hover:brightness-95 transition-all"
               >
-                🎁 최종 보상(MOMO) 카드 바로보기
+                🎁 최종 보상 바로보기
+              </button>
+              <button 
+                onClick={() => setStatus('gameOver')}
+                className="flex-1 py-2 text-sm font-bold rounded-lg border bg-gray-200 text-gray-700 border-gray-300 shadow-sm hover:brightness-95 transition-all"
+              >
+                😭 패배 안내 바로보기
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-3 text-center">랜덤일 경우 1라(100%), 2라(80%), 3라(50%) 확률로 연승 적용</p>
